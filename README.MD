@@ -71,7 +71,10 @@ npm install
 
 Lancer le bot :
 
+```bash
 node index.js
+```
+
 ⚠️ Notes importantes
 Assurez-vous d’avoir Python 3.8+ ou Node.js 16+ installé.
 

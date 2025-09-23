@@ -1,79 +1,84 @@
-# 🤖 Discord Bot Generator
+# 🤖 Générateur de Bot Discord
 
-A simple cross-platform script (Windows/Linux/MacOS) that generates a fully working Discord bot project in Python (discord.py) or JavaScript (discord.js) with a !ping command.
+Un script **simple** et **multi-plateformes** (Windows / Linux / MacOS) qui génère automatiquement un projet complet de **bot Discord** en **Python (discord.py)** ou **JavaScript (discord.js)**.  
+👉 Le projet généré inclut directement une commande de test `!ping` ou `/ping`.
 
-Un script simple et multi-plateformes (Windows/Linux/MacOS) qui génère un projet bot Discord fonctionnel en Python (discord.py) ou JavaScript (discord.js) avec une commande !ping.
+---
 
-# 🌍 Features | Fonctionnalités
+## 🌍 Fonctionnalités
 
-Detects your OS (Windows/Linux/MacOS)
+✨ Ce générateur vous permet de :
 
-Lets you choose between Python or JavaScript
+✅ Détecter automatiquement votre système (Windows/Linux/MacOS)  
+✅ Choisir entre **Python** ou **JavaScript**  
+✅ Vérifier si les dépendances nécessaires sont installées (**Python / Node.js + librairies Discord**)  
+✅ Générer une structure de projet prête à l’emploi :  
 
-Checks if required dependencies are installed (Python/Node.js + discord libraries)
+```bash
+project/
+│── commands/ # Commandes du bot
+│── events/ # Événements du bot
+│── config/ # Fichiers de configuration
+│── .env # Stocke le token du bot
+│── main.py # Point d’entrée si Python est choisi
+│── index.js # Point d’entrée si JavaScript est choisi
 
-Creates a ready-to-run bot project structure:
+```
 
-commands/ → bot commands
+✅ Crée automatiquement une commande de test `!ping` ou `/ping`  
+✅ Permet de lancer immédiatement le bot après génération  
 
-events/ → bot events
+---
 
-config/ → configuration files
+## 🚀 Installation & Utilisation
 
-.env → stores your bot token
+### 1️⃣ Cloner le dépôt
 
-Generates working code with a !ping command
-
-Project runs immediately after setup
-
-# 🚀 How to Use | Comment utiliser
-1. Clone or download this repository
+```bash
 git clone https://github.com/your-username/discord-bot-generator.git
 cd discord-bot-generator
+```
+2️⃣ Lancer le script générateur
 
-2. Run the generator script | Lancez le script générateur
-python setup_bot.py
-
-3. Follow the instructions | Suivez les instructions
-
-Choose Python or JavaScript
-
-Enter the destination folder for your project
-
-Enter your Discord bot token (saved securely in .env)
-
-# 🐍 For Python (discord.py)
-Install dependencies | Installer les dépendances
-pip install -r requirements.txt
-
-Run your bot | Lancer le bot
+```bash
 python main.py
+```
 
-⚡ For JavaScript (discord.js)
-Install dependencies | Installer les dépendances
+3️⃣ Suivre les instructions
+Choisir Python ou JavaScript
+
+Indiquer le dossier de destination
+
+Coller le token de votre bot Discord (stocké en sécurité dans .env)
+
+🐍 Utilisation avec Python (discord.py)
+Installer les dépendances :
+```bash
+pip install -r requirements.txt
+```
+
+Lancer le bot :
+```bash
+python main.py
+```
+
+⚡ Utilisation avec JavaScript (discord.js)
+Installer les dépendances :
+
+```bash
 npm install
+```
 
-Run your bot | Lancer le bot
+Lancer le bot :
+
 node index.js
+⚠️ Notes importantes
+Assurez-vous d’avoir Python 3.8+ ou Node.js 16+ installé.
 
-📂 Project Structure | Structure du projet
-project/
-│── commands/      # Bot commands | Commandes du bot
-│── events/        # Bot events   | Événements du bot
-│── config/        # Config files | Fichiers de configuration
-│── .env           # Stores your Discord token | Contient le token du bot
-│── main.py        # Entry point if Python is chosen | Entrée si Python est choisi
-│── index.js       # Entry point if JavaScript is chosen | Entrée si JavaScript est choisi
+Le token de votre bot doit être généré depuis le Discord Developer Portal.
 
-# ⚠️ Notes
+❌ Ne partagez jamais votre token publiquement.
 
-Make sure you have Python 3.8+ or Node.js 16+ installed.
-
-Your bot token must be generated from the Discord Developer Portal
-.
-
-Never share your token publicly.
-
-✨ Author | >_ Vs⊥rv
-
-Created with ❤️ to help beginners easily start a Discord bot project.
+✨ Auteur
+👨‍💻 Vs⊥rv
+Créé avec ❤️ pour aider les débutants à lancer rapidement un projet de bot Discord.

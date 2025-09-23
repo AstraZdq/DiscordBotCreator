@@ -35,7 +35,7 @@ project/
 ### 1️⃣ Cloner le dépôt
 
 ```bash
-git clone https://github.com/your-username/discord-bot-generator.git
+git clone https://github.com/AstraZdq/DiscordBotCreator.git
 cd discord-bot-generator
 ```
 2️⃣ Lancer le script générateur

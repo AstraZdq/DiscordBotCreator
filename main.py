@@ -49,13 +49,6 @@ def clear():
 def check_command(cmd):
     return which(cmd) is not None
 
-def run_command(cmd):
-    try:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-        return result.stdout.strip()
-    except Exception:
-        return None
-
 def detect_os():
     return platform.system()
 
@@ -86,137 +79,179 @@ def validate_token(token):
 # ==========================
 def create_structure(base_path, language, token, is_slash):
     base = Path(base_path)
-    (base / "commands").mkdir(parents=True, exist_ok=True)
-    (base / "events").mkdir(parents=True, exist_ok=True)
-    (base / "config").mkdir(parents=True, exist_ok=True)
+    for folder in ["commands", "events", "config", "utils"]:
+        (base / folder).mkdir(parents=True, exist_ok=True)
 
     with open(base / ".env", "w", encoding="utf-8") as f:
         f.write(f"DISCORD_TOKEN={token}\n")
 
-    # -------------------------
+    # ==========================
     # PYTHON
-    # -------------------------
+    # ==========================
     if language == "python":
+        # main.py
         with open(base / "main.py", "w", encoding="utf-8") as f:
-            if is_slash:
-                f.write("""import os
+            f.write(f"""import os
 import discord
 from discord.ext import commands
-from discord import app_commands
 from dotenv import load_dotenv
+from utils import loader
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 
+# Charger events & commandes
+loader.load_events(bot)
+loader.load_commands(bot)
+
 @bot.event
 async def on_ready():
-    await bot.tree.sync()
-    print(f"✅ Connecté en tant que {bot.user}")
-
-@bot.tree.command(name="ping", description="Répond avec Pong!")
-async def ping(interaction: discord.Interaction):
-    await interaction.response.send_message("Pong!")
+    try:
+        await bot.tree.sync()
+        print(f"✅ Connecté en tant que {{bot.user}}")
+    except Exception as e:
+        print(f"⚠ Erreur lors du sync: {{e}}")
 
 bot.run(TOKEN)
+""")
+
+        # utils/loader.py
+        with open(base / "utils" / "loader.py", "w", encoding="utf-8") as f:
+            f.write("""import importlib
+from pathlib import Path
+
+def load_events(bot):
+    events_path = Path("events")
+    for file in events_path.glob("*.py"):
+        module = importlib.import_module(f"events.{file.stem}")
+        if hasattr(module, "setup"):
+            module.setup(bot)
+
+def load_commands(bot):
+    commands_path = Path("commands")
+    for file in commands_path.glob("*.py"):
+        module = importlib.import_module(f"commands.{file.stem}")
+        if hasattr(module, "setup"):
+            module.setup(bot)
+""")
+
+        # Exemple commande
+        with open(base / "commands" / "ping.py", "w", encoding="utf-8") as f:
+            if is_slash:
+                f.write("""from discord import app_commands
+
+def setup(bot):
+    @bot.tree.command(name="ping", description="Répond avec Pong!")
+    async def ping(interaction):
+        await interaction.response.send_message("Pong!")
 """)
             else:
-                f.write("""import sos
-import discord
-from discord.ext import commands
-from dotenv import load_dotenv
+                f.write("""from discord.ext import commands
 
-load_dotenv()
-TOKEN = os.getenv("DISCORD_TOKEN")
-
-bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
-
-@bot.event
-async def on_ready():
-    print(f"✅ Connecté en tant que {bot.user}")
-
-@bot.command()
-async def ping(ctx):
-    await ctx.send("Pong!")
-
-bot.run(TOKEN)
+def setup(bot):
+    @bot.command()
+    async def ping(ctx):
+        await ctx.send("Pong!")
 """)
 
+        # Exemple event
+        with open(base / "events" / "on_ready.py", "w", encoding="utf-8") as f:
+            f.write("""def setup(bot):
+    @bot.event
+    async def on_ready():
+        print(f"🤖 Bot prêt : {bot.user}")
+""")
+
+        # requirements.txt
         with open(base / "requirements.txt", "w", encoding="utf-8") as f:
             f.write("discord.py>=2.3.2\npython-dotenv>=1.0.1\nrequests>=2.31.0\n")
 
-    # -------------------------
+    # ==========================
     # JAVASCRIPT
-    # -------------------------
+    # ==========================
     elif language == "javascript":
+        # index.js
         with open(base / "index.js", "w", encoding="utf-8") as f:
-            if is_slash:
-                f.write("""require('dotenv').config();
-const { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes } = require('discord.js');
+            f.write(f"""require('dotenv').config();
+const {{ Client, GatewayIntentBits }} = require('discord.js');
+const {{ loadEvents, loadCommands }} = require('./utils/loader');
 
 const TOKEN = process.env.DISCORD_TOKEN;
-const CLIENT_ID = "TON_CLIENT_ID"; // ⚠️ Mets ton client ID
-const GUILD_ID = "TON_GUILD_ID";   // ⚠️ Mets ton serveur ID (ou enlève pour global)
+const client = new Client({{ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] }});
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
-
-const commands = [
-    new SlashCommandBuilder()
-        .setName('ping')
-        .setDescription('Répond avec Pong!')
-        .toJSON()
-];
-
-const rest = new REST({ version: '10' }).setToken(TOKEN);
-
-(async () => {
-    try {
-        console.log('🔄 Chargement des slash commands...');
-        await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), { body: commands });
-        console.log('✅ Slash commands chargées !');
-    } catch (error) {
-        console.error(error);
-    }
-})();
-
-client.on('ready', () => {
-    console.log(`✅ Connecté en tant que ${client.user.tag}`);
-});
-
-client.on('interactionCreate', async interaction => {
-    if (!interaction.isChatInputCommand()) return;
-    if (interaction.commandName === 'ping') {
-        await interaction.reply('Pong!');
-    }
-});
+loadEvents(client);
+loadCommands(client);
 
 client.login(TOKEN);
+""")
+
+        # utils/loader.js
+        with open(base / "utils" / "loader.js", "w", encoding="utf-8") as f:
+            f.write("""const fs = require('fs');
+const path = require('path');
+
+function loadEvents(client) {
+    const eventsPath = path.join(__dirname, '../events');
+    fs.readdirSync(eventsPath).forEach(file => {
+        const event = require(`../events/${file}`);
+        if (event.name && event.execute) {
+            client.on(event.name, (...args) => event.execute(...args, client));
+        }
+    });
+}
+
+function loadCommands(client) {
+    const commandsPath = path.join(__dirname, '../commands');
+    fs.readdirSync(commandsPath).forEach(file => {
+        const command = require(`../commands/${file}`);
+        if (command.data && command.execute) {
+            client.commands.set(command.data.name, command);
+        }
+    });
+}
+
+module.exports = { loadEvents, loadCommands };
+""")
+
+        # Exemple commande
+        with open(base / "commands" / "ping.js", "w", encoding="utf-8") as f:
+            if is_slash:
+                f.write("""const { SlashCommandBuilder } = require('discord.js');
+
+module.exports = {
+    data: new SlashCommandBuilder()
+        .setName('ping')
+        .setDescription('Répond avec Pong!'),
+    async execute(interaction) {
+        await interaction.reply('Pong!');
+    },
+};
 """)
             else:
-                f.write("""require('dotenv').config();
-const { Client, GatewayIntentBits } = require('discord.js');
-
-const TOKEN = process.env.DISCORD_TOKEN;
-
-const client = new Client({
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
-});
-
-client.on('ready', () => {
-    console.log(`✅ Connecté en tant que ${client.user.tag}`);
-});
-
-client.on('messageCreate', message => {
-    if (message.author.bot) return;
-    if (message.content === '!ping') {
-        message.channel.send('Pong!');
-    }
-});
-
-client.login(TOKEN);
+                f.write("""module.exports = {
+    name: 'ping',
+    execute(message) {
+        if (message.content === '!ping') {
+            message.channel.send('Pong!');
+        }
+    },
+};
 """)
 
+        # Exemple event
+        with open(base / "events" / "ready.js", "w", encoding="utf-8") as f:
+            f.write("""module.exports = {
+    name: 'ready',
+    once: true,
+    execute(client) {
+        console.log(`🤖 Connecté en tant que ${client.user.tag}`);
+    },
+};
+""")
+
+        # package.json
         with open(base / "package.json", "w", encoding="utf-8") as f:
             f.write("""{
   "name": "discord-bot",
@@ -236,7 +271,6 @@ client.login(TOKEN);
 def main():
     clear()
 
-    # choix de langue
     print("1. Français")
     print("2. English")
     lang_choice = input("👉 ")
@@ -245,7 +279,6 @@ def main():
     print(LANG[current_lang]["welcome"])
     print(f"OS détecté : {detect_os()}")
 
-    # choix langage bot
     choix = ""
     while choix not in ["1", "2"]:
         print(LANG[current_lang]["choose_lang"])
@@ -260,14 +293,12 @@ def main():
     else:
         check_node()
 
-    # choix type de commandes
     print(LANG[current_lang]["choose_cmd"])
     print(LANG[current_lang]["option_cmd"])
     print(LANG[current_lang]["option_slash"])
     cmd_mode = input("👉 ")
     is_slash = cmd_mode == "2"
 
-    # destination projet
     dest = input("\nEntre le dossier de destination du projet : ").strip()
     if not dest:
         print(LANG[current_lang]["invalid_folder"])
